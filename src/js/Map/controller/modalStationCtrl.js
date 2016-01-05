@@ -1,7 +1,7 @@
 angular.module('n52.core.map')
         .controller('SwcModalStationCtrl', ['$scope', '$uibModalInstance', 'timeseriesService', '$location', 'stationService', 'selection',
             function ($scope, $uibModalInstance, timeseriesService, $location, stationService, selection) {
-                stationService.determineTimeseries(selection.stationId, selection.url);
+                stationService.determineTimeseries(selection.station, selection.url);
                 $scope.isAllSelected = true;
                 $scope.station = stationService.station;
                 $scope.phenomenonId = selection.phenomenonId;

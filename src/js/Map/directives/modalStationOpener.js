@@ -15,17 +15,17 @@ angular.module('n52.core.map')
                                     templateUrl: 'templates/map/station.html',
                                     resolve: {
                                         selection: function () {
-                                            var stationsId;
+                                            var station;
                                             var url;
                                             if (args.model) {
-                                                stationsId = args.model.stationsId ? args.model.stationsId : "";
+                                                station = args.model.station ? args.model.station : "";
                                                 url = args.model.url ? args.model.url : "";
                                             } else if (args.leafletObject && args.leafletObject.options) {
-                                                stationsId = args.leafletObject.options.stationsId ? args.leafletObject.options.stationsId : "";
+                                                station = args.leafletObject.options.station ? args.leafletObject.options.station : "";
                                                 url = args.leafletObject.options.url ? args.leafletObject.options.url : "";
                                             }
                                             return {
-                                                stationId: stationsId,
+                                                station: station,
                                                 phenomenonId: mapService.map.selectedPhenomenonId,
                                                 url: url
                                             };
