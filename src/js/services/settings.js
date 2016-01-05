@@ -127,7 +127,7 @@ angular.module('n52.core.settings', [])
                                 label: 'timeSelection.presets.todayYesterday',
                                 interval: {
                                     from: moment().subtract(1, 'days').startOf('day'),
-                                    //till: moment(),
+                                    till: moment().endOf('day'),
                                     duration: moment.duration(2, 'days')
                                 }
                             },
@@ -136,7 +136,7 @@ angular.module('n52.core.settings', [])
                                 label: 'timeSelection.presets.thisWeek',
                                 interval: {
                                     from: moment().startOf('week'),
-                                    //till: moment(),
+                                    till: moment().endOf('week'),
                                     duration: moment.duration(1, 'weeks')
                                 }
                             },
@@ -154,7 +154,7 @@ angular.module('n52.core.settings', [])
                                 label: 'timeSelection.presets.thisMonth',
                                 interval: {
                                     from: moment().startOf('month'),
-                                    //till: moment(),
+                                    till: moment().endOf('month'),
                                     duration: moment.duration(1, 'months')
                                 }
                             },
@@ -172,7 +172,7 @@ angular.module('n52.core.settings', [])
                                 label: 'timeSelection.presets.thisYear',
                                 interval: {
                                     from: moment().startOf('year'),
-                                    //till: moment(),
+                                    till: moment().endOf('year'),
                                     duration: moment.duration(1, 'years')
                                 }
                             },

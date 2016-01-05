@@ -1,6 +1,6 @@
 angular.module('n52.core.time', [])
-        .factory('timeService', ['$rootScope', 'statusService', 'utils', 
-            function ($rootScope, statusService, utils) {
+        .factory('timeService', ['$rootScope', 'statusService',
+            function ($rootScope, statusService) {
                 var time = {
                     duration: moment.duration(statusService.status.timespan.duration),
                     start: moment(statusService.status.timespan.start),
@@ -9,9 +9,15 @@ angular.module('n52.core.time', [])
 
                 function getCurrentTimespan(buffer) {
                     if (angular.isObject(buffer)) {
-                        return utils.createRequestTimespan(moment(time.start).subtract(buffer), moment(time.end).add(buffer));
+                        return {
+                            start: moment(time.start).subtract(buffer),
+                            end: moment(time.end).add(buffer)
+                        };
                     } else {
-                        return utils.createRequestTimespan(time.start, time.end);
+                        return {
+                            start: time.start,
+                            end: time.end
+                        };
                     }
                 }
 
@@ -35,18 +41,21 @@ angular.module('n52.core.time', [])
                     if (interval.till && interval.duration && !interval.from) {
                         time.start = moment(time.end).subtract(time.duration);
                     }
+                    if (interval.till && interval.from && !interval.duration) {
+                        time.duration = moment.duration(time.end.diff(time.start));
+                    }
                     fireNewTimeExtent();
                 }
 
                 function stepBack() {
-                    time.start = time.start.subtract(time.duration);
-                    time.end = time.end.subtract(time.duration);
+                    time.start = moment(time.start).subtract(time.duration);
+                    time.end = moment(time.end).subtract(time.duration);
                     fireNewTimeExtent();
                 }
 
                 function stepForward() {
-                    time.start = time.start.add(time.duration);
-                    time.end = time.end.add(time.duration);
+                    time.start = moment(time.start).add(time.duration);
+                    time.end = moment(time.end).add(time.duration);
                     fireNewTimeExtent();
                 }
 
@@ -65,8 +74,8 @@ angular.module('n52.core.time', [])
                     time.end = moment(time.start).add(time.duration);
                     fireNewTimeExtent();
                 }
-                
-                function centerTimespan (duration) {
+
+                function centerTimespan(duration) {
                     time.duration = moment.duration(duration);
                     var halfspan = moment.duration(time.duration.valueOf() / 2);
                     var center = (time.end.valueOf() - time.start.valueOf()) / 2;
@@ -74,7 +83,7 @@ angular.module('n52.core.time', [])
                     time.end = moment(time.start).add(time.duration);
                     fireNewTimeExtent();
                 }
-                
+
                 function isInCurrentTimespan(timestamp) {
                     return moment(timestamp).isBetween(time.start, time.end);
                 }
