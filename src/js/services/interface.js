@@ -233,7 +233,7 @@ angular.module('n52.core.interface', [])
                         format: 'flot'
                     };
                     if (timespan)
-                        params.timespan = timespan;
+                        params.timespan = utils.createRequestTimespan(timespan.start, timespan.end);
                     if (extendedData) {
                         angular.extend(params, extendedData);
                     }
