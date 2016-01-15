@@ -208,15 +208,11 @@ angular.module('n52.core.interface', [])
                             if (isV2) {
                                 if (response.data.hasOwnProperty('series')) {
                                     angular.forEach(response.data.series, function (s) {
-                                        var series = new Timeseries(utils.createInternalId(s.id, apiUrl), apiUrl);
-                                        angular.extend(series, s);
-                                        array.push(series);
+                                        array.push(_createV2Timeseries(utils.createInternalId(s.id, apiUrl), apiUrl, s));
                                     });
                                     resolve(array);
                                 } else {
-                                    series = new Timeseries(utils.createInternalId(response.data.id, apiUrl), apiUrl);
-                                    angular.extend(series, response.data);
-                                    resolve(series);
+                                    resolve(_createV2Timeseries(utils.createInternalId(response.data.id, apiUrl), apiUrl, response.data));
                                 }
                             } else {
                                 if (angular.isArray(response.data)) {
@@ -235,6 +231,13 @@ angular.module('n52.core.interface', [])
                         });
                     });
                 };
+
+                _createV2Timeseries = function (internalId, url, s) {
+                    var series = new Timeseries(internalId, url);
+                    angular.extend(series, s);
+                    series.parameters.feature = series.parameters.platform;
+                    return series;
+                }
 
                 this.getTsData = function (id, apiUrl, timespan, extendedData) {
                     var requestUrl, isV2 = _isV2(apiUrl);
