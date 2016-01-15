@@ -122,10 +122,9 @@ angular.module('n52.core.interface', [])
                 };
 
                 this.getPhenomena = function (id, apiUrl, params) {
-                    var url, isV2 = _isV2(apiUrl);
                     return $q(function (resolve, reject) {
                         $http.get(apiUrl + 'phenomena/' + _createIdString(id), _createRequestConfigs(params)).then(function (response) {
-                            if (isV2) {
+                            if (_isV2(apiUrl)) {
                                 resolve(response.data.phenomena);
                             } else {
                                 resolve(response.data);
@@ -139,7 +138,11 @@ angular.module('n52.core.interface', [])
                 this.getCategories = function (id, apiUrl, params) {
                     return $q(function (resolve, reject) {
                         $http.get(apiUrl + 'categories/' + _createIdString(id), _createRequestConfigs(params)).then(function (response) {
-                            resolve(response.data);
+                            if (_isV2(apiUrl)) {
+                                resolve(response.data.categories);
+                            } else {
+                                resolve(response.data);
+                            }
                         }, function (error) {
                             _errorCallback(error, reject);
                         });
@@ -149,7 +152,11 @@ angular.module('n52.core.interface', [])
                 this.getFeatures = function (id, apiUrl, params) {
                     return $q(function (resolve, reject) {
                         $http.get(apiUrl + 'features/' + _createIdString(id), _createRequestConfigs(params)).then(function (response) {
-                            resolve(response.data);
+                            if (_isV2(apiUrl)) {
+                                resolve(response.data.features);
+                            } else {
+                                resolve(response.data);
+                            }
                         }, function (error) {
                             _errorCallback(error, reject);
                         });
@@ -159,7 +166,11 @@ angular.module('n52.core.interface', [])
                 this.getProcedures = function (id, apiUrl, params) {
                     return $q(function (resolve, reject) {
                         $http.get(apiUrl + 'procedures/' + _createIdString(id), _createRequestConfigs(params)).then(function (response) {
-                            resolve(response.data);
+                            if (_isV2(apiUrl)) {
+                                resolve(response.data.procedures);
+                            } else {
+                                resolve(response.data);
+                            }
                         }, function (error) {
                             _errorCallback(error, reject);
                         });
