@@ -1,21 +1,9 @@
 angular.module('n52.core.interface')
         .config(['$provide',
             function ($provide) {
-                $provide.decorator('interfaceService', ['$delegate', '$q', 'statusService', '$http', 'settingsService', 'utils',
-                    function ($delegate, $q, statusService, $http, settingsService, utils) {
+                $provide.decorator('interfaceService', ['$delegate', '$q', 'statusService', '$http', 'utils', 'interfaceUtilsSrvc',
+                    function ($delegate, $q, statusService, $http, utils, interfaceUtilsSrvc) {
                         var maxTimeExtent = moment.duration(365, 'day'), promises;
-
-                        var _createRequestConfigs = function (params) {
-                            if (angular.isUndefined(params)) {
-                                params = settingsService.additionalParameters;
-                            } else {
-                                angular.extend(params, settingsService.additionalParameters);
-                            }
-                            return {
-                                params: params,
-                                cache: true
-                            };
-                        };
 
                         $delegate.getTsData = function (id, apiUrl, timespan, extendedData) {
                             var params = {
@@ -48,10 +36,16 @@ angular.module('n52.core.interface')
                             } else {
                                 params.timespan = utils.createRequestTimespan(timespan.start, timespan.end);
                                 return $q(function (resolve, reject) {
-                                    $http.get(apiUrl + 'timeseries/' + _createIdString(id) + "/getData", _createRequestConfigs(params)).then(function (response) {
+                                    var url;
+                                    if (interfaceUtilsSrvc.isV2(apiUrl)) {
+                                        url = apiUrl + 'series/';
+                                    } else {
+                                        url = apiUrl + 'timeseries/';
+                                    }
+                                    $http.get(url + interfaceUtilsSrvc.createIdString(id) + "/getData", interfaceUtilsSrvc.createRequestConfigs(params)).then(function (response) {
                                         resolve(response.data);
                                     }, function (error) {
-                                        _errorCallback(error, reject);
+                                        interfaceUtilsSrvc.errorCallback(error, reject);
                                     });
                                 });
                             }
