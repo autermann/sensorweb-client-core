@@ -1,12 +1,13 @@
 angular.module('n52.core.flot', [])
-        .directive('flot', ['timeService', '$window', '$translate', 'timeseriesService', 'styleService', '$rootScope',
-            function (timeService, $window, $translate, timeseriesService, styleService, $rootScope) {
+        .directive('flot', ['timeService', '$window', '$translate', 'timeseriesService', 'styleService', '$rootScope', '$injector',
+            function (timeService, $window, $translate, timeseriesService, styleService, $rootScope, $injector) {
                 return {
                     restrict: 'EA',
                     template: '<div></div>',
                     scope: {
                         dataset: '=',
-                        options: '='
+                        options: '=',
+                        horizontalpanhandler: '='
                     },
                     link: function (scope, element, attributes) {
                         var height, plot, plotArea, width, _ref, _ref1;
@@ -169,7 +170,12 @@ angular.module('n52.core.flot', [])
                             var xaxis = plot.getXAxes()[0];
                             var from = moment(xaxis.min);
                             var till = moment(xaxis.max);
-                            timeService.setFlexibleTimeExtent(from, till);
+                            if (scope.horizontalpanhandler) {
+                                var temp = $injector.get(scope.horizontalpanhandler);
+                                temp.plotPanEnd();
+                            } else {
+                                timeService.setFlexibleTimeExtent(from, till);
+                            }
                         });
 
                         // plot selected event
