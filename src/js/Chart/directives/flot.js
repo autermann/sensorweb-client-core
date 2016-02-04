@@ -111,7 +111,7 @@ angular.module('n52.core.flot', [])
                                                 $('<span>').html('&nbsp;&#x25CF;').css('color', color).addClass('labelColorMarker').appendTo(yaxisLabel);
                                             });
                                         }
-                                        yaxisLabel.css("margin-left", -(yaxisLabel.width() - yaxisLabel.height()) / 2 - 3);
+                                        yaxisLabel.css("margin-left", -(yaxisLabel.width() - yaxisLabel.height()) / 2);
                                     }
                                 }, this));
 
@@ -165,6 +165,13 @@ angular.module('n52.core.flot', [])
                             plotChart(plotArea, scope.dataset, scope.options);
                         });
 
+                        $(plotArea).bind('plotzoom', function(evt, plot) {
+                            var xaxis = plot.getXAxes()[0];
+                            var from = moment(xaxis.min);
+                            var till = moment(xaxis.max);
+                            timeService.setFlexibleTimeExtent(from, till);
+                        });
+                        
                         // plot pan ended event
                         $(plotArea).bind('plotpanEnd', function (evt, plot) {
                             var xaxis = plot.getXAxes()[0];
@@ -176,6 +183,13 @@ angular.module('n52.core.flot', [])
                             } else {
                                 timeService.setFlexibleTimeExtent(from, till);
                             }
+                        });
+                        
+                        $(plotArea).bind('touchended', function(evt, plot) {
+                            var xaxis = plot.xaxis;
+                            var from = moment(xaxis.from);
+                            var till = moment(xaxis.to);
+                            timeService.setFlexibleTimeExtent(from, till);
                         });
 
                         // plot selected event

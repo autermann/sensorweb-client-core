@@ -1,10 +1,22 @@
-/* this extension splits one getData request in a couple of requests if the supported timespan is to great */
+// this extension splits one getData request in a couple of requests if the supported timespan is to great 
 angular.module('n52.core.interface')
         .config(['$provide',
             function ($provide) {
-                $provide.decorator('interfaceService', ['$delegate', '$q', 'statusService', '$http', 'utils', 'interfaceUtilsSrvc',
-                    function ($delegate, $q, statusService, $http, utils, interfaceUtilsSrvc) {
+                $provide.decorator('interfaceService', ['$delegate', '$q', 'statusService', '$http', 'settingsService', 'utils',
+                    function ($delegate, $q, statusService, $http, settingsService, utils) {
                         var maxTimeExtent = moment.duration(365, 'day'), promises;
+
+                        var _createRequestConfigs = function (params) {
+                            if (angular.isUndefined(params)) {
+                                params = settingsService.additionalParameters;
+                            } else {
+                                angular.extend(params, settingsService.additionalParameters);
+                            }
+                            return {
+                                params: params,
+                                cache: true
+                            };
+                        };
 
                         $delegate.getTsData = function (id, apiUrl, timespan, extendedData) {
                             var params = {
@@ -37,16 +49,10 @@ angular.module('n52.core.interface')
                             } else {
                                 params.timespan = utils.createRequestTimespan(timespan.start, timespan.end);
                                 return $q(function (resolve, reject) {
-                                    var url;
-                                    if (interfaceUtilsSrvc.isV2(apiUrl)) {
-                                        url = apiUrl + 'series/';
-                                    } else {
-                                        url = apiUrl + 'timeseries/';
-                                    }
-                                    $http.get(url + interfaceUtilsSrvc.createIdString(id) + "/getData", interfaceUtilsSrvc.createRequestConfigs(params)).then(function (response) {
+                                    $http.get(apiUrl + 'timeseries/' + _createIdString(id) + "/getData", _createRequestConfigs(params)).then(function (response) {
                                         resolve(response.data);
                                     }, function (error) {
-                                        interfaceUtilsSrvc.errorCallback(error, reject);
+                                        _errorCallback(error, reject);
                                     });
                                 });
                             }

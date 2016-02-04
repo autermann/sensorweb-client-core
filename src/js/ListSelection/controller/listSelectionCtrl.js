@@ -1,6 +1,6 @@
 angular.module('n52.core.listSelection')
-        .controller('SwcListSelectionCtrl', ['$scope', 'interfaceService', 'statusService', 'timeseriesService',
-            function ($scope, interfaceService, statusService, timeseriesService) {
+        .controller('SwcListSelectionCtrl', ['$scope', 'interfaceService', 'statusService', 'timeseriesService', '$rootScope', 'listSelectionSrvc',
+            function ($scope, interfaceService, statusService, timeseriesService, $rootScope, listSelectionSrvc) {
                 angular.forEach($scope.parameters, function (param, openedIdx) {
                     $scope.$watch('parameters[' + openedIdx + '].isOpen', function (newVal) {
                         if (newVal) {
@@ -8,6 +8,18 @@ angular.module('n52.core.listSelection')
                             $scope.disableFollowingParameters();
                         }
                     });
+                });
+
+                _clearSelection = function () {
+                    angular.forEach($scope.parameters, function (parameter) {
+                        delete parameter.items;
+                        delete parameter.selectedId;
+                    });
+                };
+
+                $rootScope.$on('newProviderSelected', function () {
+                    _clearSelection();
+                    $scope.openNext(0);
                 });
 
                 $scope.createParams = function () {
@@ -78,7 +90,7 @@ angular.module('n52.core.listSelection')
                         $scope.addToDiagram($scope.createParams());
                     }
                 };
-                
+
                 $scope.addItem = function (item, idx) {
                     var parameters = $scope.parameters[idx];
                     parameters.selectedId = item.id;
@@ -95,5 +107,34 @@ angular.module('n52.core.listSelection')
                     timeseriesService.addTimeseriesById(null, statusService.status.apiProvider.url, params);
                 };
 
-                $scope.openNext(0);
+                if ($scope.listselectionid) {
+                    if (listSelectionSrvc.hasEntry($scope.listselectionid)) {
+                        $scope.parameters = listSelectionSrvc.getEntry($scope.listselectionid);
+                    } else {
+                        listSelectionSrvc.setEntry($scope.listselectionid, $scope.parameters);
+                        $scope.openNext(0);
+                    }
+                } else {
+                    $scope.openNext(0);
+                }
+            }])
+        .factory('listSelectionSrvc', ['$rootScope', function ($rootScope) {
+                var entries = {};
+                getEntry = function (id) {
+                    return entries[id];
+                };
+                setEntry = function (id, entry) {
+                    entries[id] = entry;
+                };
+                hasEntry = function (id) {
+                    return angular.isDefined(entries[id]);
+                };
+                $rootScope.$on('newProviderSelected', function () {
+                    entries = {};
+                });
+                return {
+                    getEntry: getEntry,
+                    setEntry: setEntry,
+                    hasEntry: hasEntry
+                };
             }]);

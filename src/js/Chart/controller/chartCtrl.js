@@ -21,8 +21,8 @@ angular.module('n52.core.diagram', [])
             };
         })
         // this factory handles flot chart conform datasets
-        .factory('flotChartServ', ['timeseriesService', 'timeService', 'settingsService', 'flotDataHelperServ', '$rootScope',
-            function (timeseriesService, timeService, settingsService, flotDataHelperServ, $rootScope) {
+        .factory('flotChartServ', ['timeseriesService', 'timeService', 'settingsService', 'flotDataHelperServ', '$rootScope', 'monthNamesTranslaterServ',
+            function (timeseriesService, timeService, settingsService, flotDataHelperServ, $rootScope, monthNamesTranslaterServ) {
                 var options = {
                     series: {
                         downsample: {
@@ -49,8 +49,8 @@ angular.module('n52.core.diagram', [])
                     },
                     xaxis: {
                         mode: "time",
-                        timezone: "browser"
-//            monthNames: _("chart.monthNames")
+                        timezone: "browser",
+                        monthNames: monthNamesTranslaterServ.getMonthNames()
 //            timeformat: "%Y/%m/%d",
                                 //use these the following two lines to have small ticks at the bottom ob the diagram
 //            tickLength: 5,
@@ -74,6 +74,11 @@ angular.module('n52.core.diagram', [])
                     pan: {
                         interactive: true,
                         frameRate: 10
+                    },
+                    touch: {
+                        delayTouchEnded: 200,
+                        pan: 'x',
+                        scale: ''
                     }
                 };
                 angular.merge(options, settingsService.chartOptions);
@@ -88,6 +93,10 @@ angular.module('n52.core.diagram', [])
                 $rootScope.$on('timeseriesChanged', function (evt, id) {
                     createYAxis();
                     flotDataHelperServ.updateTimeseriesInDataSet(dataset, renderOptions, id, timeseriesService.getData(id));
+                });
+
+                $rootScope.$on('$translateChangeEnd', function () {
+                    options.xaxis.monthNames = monthNamesTranslaterServ.getMonthNames();
                 });
 
                 $rootScope.$on('allTimeseriesChanged', function () {
@@ -112,23 +121,24 @@ angular.module('n52.core.diagram', [])
                 function createYAxis() {
                     var axesList = {};
                     angular.forEach(timeseriesService.getAllTimeseries(), function (elem) {
+                        uom = elem.uom || elem.parameters.phenomenon.label;
                         if (elem.styles.groupedAxis === undefined || elem.styles.groupedAxis) {
-                            if (!axesList.hasOwnProperty(elem.uom)) {
-                                axesList[elem.uom] = {
+                            if (!axesList.hasOwnProperty(uom)) {
+                                axesList[uom] = {
                                     id: ++Object.keys(axesList).length,
-                                    uom: elem.uom,
+                                    uom: uom,
                                     tsColors: [elem.styles.color],
                                     zeroScaled: elem.styles.zeroScaled
                                 };
-                                elem.styles.yaxis = axesList[elem.uom].id;
+                                elem.styles.yaxis = axesList[uom].id;
                             } else {
-                                axesList[elem.uom].tsColors.push(elem.styles.color);
-                                elem.styles.yaxis = axesList[elem.uom].id;
+                                axesList[uom].tsColors.push(elem.styles.color);
+                                elem.styles.yaxis = axesList[uom].id;
                             }
                         } else {
                             axesList[elem.id] = {
                                 id: ++Object.keys(axesList).length,
-                                uom: elem.uom + " @ " + elem.station.properties.label,
+                                uom: uom + " @ " + elem.station.properties.label,
                                 tsColors: [elem.styles.color],
                                 zeroScaled: elem.styles.zeroScaled
                             };
@@ -194,7 +204,7 @@ angular.module('n52.core.diagram', [])
                                         var data = timeseriesService.getData(id);
                                         if (data && data.referenceValues) {
                                             dataset.push({
-                                                id: refValue.referenceValueId,
+                                                id: id + '_refVal_' + refValue.referenceValueId,
                                                 color: refValue.color,
                                                 data: timeseriesService.getData(id).referenceValues[refValue.referenceValueId]
                                             });
@@ -247,27 +257,41 @@ angular.module('n52.core.diagram', [])
                 }
 
                 function removeTimeseriesFromDataSet(dataset, id) {
-                    removeData(dataset, id);
-                    if (timeseriesService.getTimeseries(id)) {
-                        angular.forEach(timeseriesService.getTimeseries(id).referenceValues, function (refValue) {
-                            removeData(dataset, refValue.referenceValueId);
-                        });
-                    }
+                    return removeData(dataset, id);
                 }
 
                 function removeData(dataset, id) {
-                    var idx;
-                    angular.forEach(dataset, function (elem, i) {
-                        if (elem.id === id)
-                            idx = i;
-                    });
-                    if (idx >= 0)
-                        dataset.splice(idx, 1);
+                    for (var i = dataset.length - 1; i >= 0; i--) {
+                        if (dataset[i].id.indexOf(id) === 0)
+                            dataset.splice(i, 1);
+                    }
                 }
 
                 return {
                     updateAllTimeseriesToDataSet: updateAllTimeseriesToDataSet,
                     updateTimeseriesInDataSet: updateTimeseriesInDataSet,
                     removeTimeseriesFromDataSet: removeTimeseriesFromDataSet
+                };
+            }])
+        .factory('monthNamesTranslaterServ', ['$translate',
+            function ($translate) {
+                getMonthNames = function () {
+                    return [
+                        $translate.instant('chart.monthNames.jan'),
+                        $translate.instant('chart.monthNames.feb'),
+                        $translate.instant('chart.monthNames.mar'),
+                        $translate.instant('chart.monthNames.apr'),
+                        $translate.instant('chart.monthNames.may'),
+                        $translate.instant('chart.monthNames.jun'),
+                        $translate.instant('chart.monthNames.jul'),
+                        $translate.instant('chart.monthNames.aug'),
+                        $translate.instant('chart.monthNames.sep'),
+                        $translate.instant('chart.monthNames.oct'),
+                        $translate.instant('chart.monthNames.nov'),
+                        $translate.instant('chart.monthNames.dec')
+                    ];
+                };
+                return {
+                    getMonthNames: getMonthNames
                 };
             }]);
